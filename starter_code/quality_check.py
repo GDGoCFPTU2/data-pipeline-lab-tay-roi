@@ -3,13 +3,30 @@
 # ==========================================
 
 def run_semantic_checks(doc_dict: dict) -> bool:
-    content = doc_dict.get("content", "")
-    
-    # 1. Kiểm tra độ dài: Nếu content trống hoặc < 10 ký tự -> False
-    # TODO: Thực hiện kiểm tra độ dài ở đây
-    
-    # 2. Kiểm tra từ khóa lỗi
+    required_fields = (
+        "document_id",
+        "source_type",
+        "author",
+        "category",
+        "content",
+        "timestamp",
+    )
+    for field in required_fields:
+        value = str(doc_dict.get(field, "") or "").strip()
+        if not value:
+            return False
+
+    content = str(doc_dict.get("content", "") or "").strip()
+
+    # 1. Reject empty or too-short content.
+    if len(content) < 10:
+        return False
+
+    # 2. Reject records that still contain obvious extraction/runtime errors.
     toxic_keywords = ["Null pointer exception", "OCR Error", "Traceback"]
-    # TODO: Lặp qua các từ trong toxic_keywords, nếu từ đó xuất hiện trong content -> Trả về False
-            
+    normalized_content = content.lower()
+    for keyword in toxic_keywords:
+        if keyword.lower() in normalized_content:
+            return False
+
     return True
